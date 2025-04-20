@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Cyber Fraud Detector</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    body {
+      font-family: 'Rajdhani', sans-serif;
+      color: #00ffe0;
+      overflow-x: hidden;
+      background: url('https://cdn.wallpapersafari.com/0/60/Bts4rY.jpg') no-repeat center center fixed;
+      background-size: cover;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: -1;
+    }
+
+    .main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 2rem;
+      text-shadow: 0 0 10px #00fff7;
+      font-weight: 600;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(0, 255, 240, 0.2);
+      border-radius: 20px;
+      padding: 2rem;
+      max-width: 250px;
+      width: 100%;
+      text-align: center;
+      position: relative;
+      box-shadow: 0 0 30px rgba(0, 255, 240, 0.05);
+    }
+
+    .image-wrapper {
+      position: relative;
+      margin: 1rem 0 1.5rem 0;
+      border-radius: 15px;
+      overflow: hidden;
+    }
+
+    #image-preview {
+      width: 100%;
+      max-height: 200px;
+      display: none;
+      border: 2px solid #00ffe0;
+      border-radius: 15px;
+      object-fit: contain;
+      box-shadow: 0 0 20px rgba(0, 255, 240, 0.3);
+    }
+
+    .scanner {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .laser-line {
+      position: absolute;
+      top: -5px;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(to right, transparent, red, transparent);
+      box-shadow: 0 0 10px red;
+      animation: laser-sweep 3s linear forwards;
+    }
+
+    @keyframes laser-sweep {
+      0% { top: -5px; opacity: 0.3; }
+      50% { opacity: 1; }
+      100% { top: 100%; opacity: 0.3; }
+    }
+
+    .binary-fall {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      font-size: 12px;
+      font-family: monospace;
+      color: #00ffcc;
+      white-space: pre;
+      animation: binary-scan 3s linear forwards;
+      background: linear-gradient(to bottom, transparent 40%, rgba(0,255,255,0.05), transparent 60%);
+    }
+
+    @keyframes binary-scan {
+      0% { transform: translateY(-100%); opacity: 0; }
+      10% { opacity: 1; }
+      100% { transform: translateY(0%); opacity: 0; }
+    }
+
+    .code-overlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      color: #00ff00;
+      font-size: 11px;
+      font-family: monospace;
+      line-height: 1.2;
+      white-space: pre;
+      pointer-events: none;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.4);
+      text-shadow: 0 0 2px #00ff00, 0 0 5px #00ff00;
+      overflow: hidden;
+      opacity: 0;
+      animation: code-fade 3s ease-in-out forwards;
+    }
+
+    @keyframes code-fade {
+      0% { opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    button {
+      background: #00ffe0;
+      border: none;
+      padding: 10px 18px;
+      font-size: 0.9rem;
+      color: #000;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 0 15px #00ffe0;
+      transition: 0.3s;
+      font-weight: 600;
+    }
+
+    .modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.95);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+
+    .modal.show {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal-content {
+      background: rgba(255, 0, 90, 0.08);
+      border: 2px solid #ff0055;
+      padding: 2rem;
+      border-radius: 20px;
+      color: #ff0055;
+      box-shadow: 0 0 25px #ff0055;
+      text-align: center;
+      animation: popIn 0.3s ease-out;
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.9); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    #confidence-level {
+      font-weight: bold;
+      color: #ff4d6d;
+      text-shadow: 0 0 5px #ff4d6d;
+    }
+
+    .proceed-warning {
+      font-size: 1rem;
+      color: #ff4d6d;
+      margin-top: 10px;
+      font-weight: 600;
+    }
+
+    .close-btn {
+      margin-top: 1.5rem;
+      padding: 10px 20px;
+      background: #ff0055;
+      border: none;
+      color: white;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 0 15px #ff0055;
+      font-weight: 600;
+    }
+
+    .file-upload {
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      z-index: 1000;
+    }
+
+    .custom-upload {
+      padding: 8px 14px;
+      background: #00ffe0;
+      color: #000;
+      font-family: 'Rajdhani', sans-serif;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 0 10px #00ffe0;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+<div class="main">
+  <h1>Item Fraud Detection Tool</h1>
+  <div class="container">
+    <div class="image-wrapper" id="image-container">
+      <img id="image-preview">
+      <div class="scanner" id="scanner"></div>
+    </div>
+    <button onclick="verifyItem()">Verify Item</button>
+  </div>
+</div>
+<div class="file-upload">
+  <label for="upload" class="custom-upload">Upload Image</label>
+  <input type="file" id="upload" accept="image/*">
+</div>
+<div class="modal" id="fraudModal">
+  <div class="modal-content">
+    <h2>⚠ Scam Detected ⚠</h2>
+    <p id="item-id">Item ID: </p>
+    <p id="confidence-level"></p>
+    <p class="proceed-warning">Proceed banning the item holder</p>
+    <button class="close-btn" onclick="closeModal()">Close</button>
+  </div>
+</div>
+<script>
+  const uploadInput = document.getElementById("upload");
+  const imagePreview = document.getElementById("image-preview");
+  const imageContainer = document.getElementById("image-container");
+  const scanner = document.getElementById("scanner");
+  const modal = document.getElementById("fraudModal");
+  const confidenceLevel = document.getElementById("confidence-level");
+  const itemId = document.getElementById("item-id");
+
+  uploadInput.addEventListener("change", function () {
+    const file = this.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        imagePreview.src = e.target.result;
+        imagePreview.style.display = "block";
+        scanner.innerHTML = "";
+        modal.classList.remove("show");
+        confidenceLevel.textContent = "";
+        itemId.textContent = "";
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  function generateBinaryMatrix(rows = 16, cols = 30) {
+    let result = "";
+    for (let i = 0; i < rows; i++) {
+      let row = "";
+      for (let j = 0; j < cols; j++) {
+        row += Math.random() > 0.5 ? "1" : "0";
+      }
+      result += row + "\n";
+    }
+    return result;
+  }
+
+  function generateFakeID() {
+    const code = Math.floor(1000 + Math.random() * 9000);
+    return `SCAN-X9R7-${code}`;
+  }
+
+  function getCodeLines() {
+    return `using System;\nusing System.Runtime.InteropServices;\n\nchecking item history {\n  [checking..(\"item231.dll\")]\n  static extern IntPtr GetStdHandle(int nStdHandle);\n  static void Main() {\n    IntPtr handle = GetStdHandle(-11);\n    Item.!"".WriteLine(\"\\x1b[32mScanning system...\\x1b[0m\");\n    Verificator 10012(\"\\x1b[32mValidating integrity...\\x1b[0m\");\n    Verifying.line(\"\\x1b[32mSignal confirmed.\\x1b[0m\");\n  }\n}`;
+  }
+
+  function verifyItem() {
+    if (!imagePreview.src || imagePreview.style.display === "none") return;
+
+    scanner.innerHTML = "";
+
+    const binary = document.createElement("div");
+    binary.className = "binary-fall";
+    binary.textContent = generateBinaryMatrix();
+    scanner.appendChild(binary);
+
+    const laser = document.createElement("div");
+    laser.className = "laser-line";
+    scanner.appendChild(laser);
+
+    const code = document.createElement("div");
+    code.className = "code-overlay";
+    code.textContent = getCodeLines();
+    scanner.appendChild(code);
+
+    setTimeout(() => {
+      scanner.innerHTML = "";
+      const confidence = Math.floor(Math.random() * 9) + 91;
+      confidenceLevel.textContent = `AI Confidence Level: ${confidence}% FRAUDULENT`;
+      itemId.textContent = `Item ID: ${generateFakeID()}`;
+      modal.classList.add("show");
+    }, 3100);
+  }
+
+  function closeModal() {
+    modal.classList.remove("show");
+  }
+</script>
+</body>
+</html>
